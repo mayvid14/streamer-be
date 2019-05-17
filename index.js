@@ -3,7 +3,11 @@ const app = express();
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
+const cors = require('cors');
 const config = JSON.parse(fs.readFileSync('./config.json'));
+const dbFunctions = require("./db/dbFunctions");
+
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.send("hello");
@@ -30,6 +34,21 @@ app.get('/track', (req, res) => {
         console.log("Ending track");
     });
 });
+
+app.get('/track/def', (req, res) => {
+    console.log("Returning default track");
+    res.json({
+        title: "Eren's Berserker theme",
+        artist: "Attack on Titan",
+        url: "http://localhost:8080/track",
+        id: "1",
+        image: "../../assets/images/aot.jpg"
+    });
+});
+
+app.get('/tracks', (req, res) => {
+    dbFunctions.getSongs(res);
+})
 
 const port = _.get(config, "PORT", 8080);
 app.listen(port, () => {
