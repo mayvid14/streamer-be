@@ -16,11 +16,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const relPath = file.fieldname === 'audio' ? _.get(config, "RELATIVE_PATH", ["..", "audio"]) : _.get(config, "IMG_PATH", ["..", "image"]);
-        console.log("RELPATH "+relPath);
         const dirPath = path.join(__dirname, ...relPath);
         cb(null, dirPath);
     },
     filename: (req, file, cb) => {
+        console.log("Saving "+file.originalname);
         cb(null, Date.now() + file.originalname);
     }
 });
@@ -32,7 +32,6 @@ app.get('/', (req, res) => {
 
 const fields = upload.fields([{ name: 'image', maxCount: 1 }, { name: 'audio', maxCount: 1 }]);
 app.post('/track', fields, (req, res) => {
-    console.log(req.files);
     const audioFile = {
         title: req.body.title,
         artist: req.body.artist,
@@ -42,9 +41,9 @@ app.post('/track', fields, (req, res) => {
     dbFunctions.addSong(audioFile, res);
 });
 
-app.get('/track', (req, res) => {
-    const relPath = _.get(config, "RELATIVE_PATH", ["..", "audio"]);
-    const filePath = path.join(__dirname, ...relPath, "aot.mp3");
+app.post('/track/audio', (req, res) => {
+    const filePath = _.get(req, ["body", "url"], "");
+    filePath.length === 0 ? res.sendStatus(404) : null;
     const stream = fs.createReadStream(filePath);
 
     console.log("Sending track");
@@ -75,14 +74,22 @@ app.get('/track/def', (req, res) => {
     });
 });
 
+app.get('/track/:searchTerm', (req, res) => {
+    const term = req.params['searchTerm'];
+    console.log("Returning tracks with term "+term);
+    dbFunctions.getSongsByTerm(term, res);
+});
+
 app.get('/tracks', (req, res) => {
     dbFunctions.getSongs(res);
 });
 
-app.get('/img/:name', (req, res) => {
-    const relPath = _.get(config, "IMG_PATH", ["..", "image"]);
-    const dirPath = path.join(__dirname, ...relPath, req.params.name);
-    res.sendFile(dirPath);
+app.post('/img', (req, res) => {
+    const dirPath = _.get(req, ["body", "image"], "");
+    const defaultPath = path.join(__dirname, "public", "images", "placeholder-song.png");
+    fs.access(dirPath, fs.F_OK, err => {
+        err ? res.sendFile(defaultPath) : res.sendFile(dirPath);
+    });
 });
 
 const port = _.get(config, "PORT", 8080);

@@ -2,10 +2,15 @@ const audio = require("./audioSchema");
 
 module.exports = {
     getSongs: cb => {
-        audio.search({ match_all: {} }, {
-            sort: [{
-                title: { order: 'asc' }
-            }]
+        audio.search({ match_all: {} }, cb);
+    },
+
+    getSongsByTerm: (term, cb) => {
+        audio.search({
+            "multi_match": {
+                "fields": ["title","artist"],
+                "query": (term)
+            }
         }, cb);
     },
 

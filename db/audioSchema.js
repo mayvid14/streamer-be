@@ -5,11 +5,11 @@ const audioSchema = new object.mongoose.Schema({
     title: {
         type: String,
         required: true,
-        es_indexed:true
+        es_type: 'text'
     }, artist: {
         type: String,
         required: true,
-        es_indexed:true
+        es_type: 'text'
     }, url: {
         type: String,
         required: true
