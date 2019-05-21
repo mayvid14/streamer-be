@@ -8,8 +8,9 @@ module.exports = {
     getSongsByTerm: (term, cb) => {
         audio.search({
             "multi_match": {
-                "fields": ["title","artist"],
-                "query": (term)
+                "fields": ["title", "artist"],
+                "query": (term),
+                "type": "phrase_prefix"
             }
         }, cb);
     },

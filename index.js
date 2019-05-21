@@ -26,6 +26,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const defaultImage = fs.readFileSync(path.join(__dirname, "public", "images", "placeholder-song.png"));
+
 app.get('/', (req, res) => {
     res.send("hello");
 });
@@ -41,9 +43,10 @@ app.post('/track', fields, (req, res) => {
     dbFunctions.addSong(audioFile, res);
 });
 
-app.post('/track/audio', (req, res) => {
-    const filePath = _.get(req, ["body", "url"], "");
+app.get('/track/audio/:path', (req, res) => {
+    let filePath = _.get(req, ["params", "path"], "");
     filePath.length === 0 ? res.sendStatus(404) : null;
+    filePath = decodeURI(filePath);
     const stream = fs.createReadStream(filePath);
 
     console.log("Sending track");
@@ -85,10 +88,19 @@ app.get('/tracks', (req, res) => {
 });
 
 app.post('/img', (req, res) => {
+    console.log("sending image");
+    res.contentType('image/jpeg');
     const dirPath = _.get(req, ["body", "image"], "");
-    const defaultPath = path.join(__dirname, "public", "images", "placeholder-song.png");
     fs.access(dirPath, fs.F_OK, err => {
-        err ? res.sendFile(defaultPath) : res.sendFile(dirPath);
+        if(err){
+            res.send(defaultImage);
+        }
+        fs.readFile(dirPath, (err, data) => {
+            if(err){
+                res.sendStatus(500);
+            }
+            res.send(data);
+        });
     });
 });
 
