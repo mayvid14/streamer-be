@@ -10,6 +10,9 @@ const audioSchema = new object.mongoose.Schema({
         type: String,
         required: true,
         es_type: 'text'
+    }, duration: {
+        type: String,
+        es_type: 'text'
     }, url: {
         type: String,
         required: true

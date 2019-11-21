@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const relPath = file.fieldname === 'audio' ? _.get(config, "RELATIVE_PATH", ["..", "audio"]) : _.get(config, "IMG_PATH", ["..", "image"]);
+        const relPath = file.fieldname === 'audio' ? _.get(config, "RELATIVE_PATH", ["audio"]) : _.get(config, "IMG_PATH", ["image"]);
         const dirPath = path.join(__dirname, ...relPath);
         cb(null, dirPath);
     },
@@ -37,6 +37,7 @@ app.post('/track', fields, (req, res) => {
     const audioFile = {
         title: req.body.title,
         artist: req.body.artist,
+        duration: req.body.duration,
         url: req.files['audio'][0].path,
         image: req.files['image'][0].path
     };
@@ -107,4 +108,5 @@ app.post('/img', (req, res) => {
 const port = _.get(config, "PORT", 8080);
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
+    dbFunctions.init();
 });
